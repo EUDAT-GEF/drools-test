@@ -1,0 +1,11 @@
+server:
+  applicationContextPath: /drools
+
+  applicationConnectors:
+    - type: http
+      port: 8088
+      # time before the request expires
+      idleTimeout: 180 seconds
+  adminConnectors:
+    - type: http
+      port: 8089
