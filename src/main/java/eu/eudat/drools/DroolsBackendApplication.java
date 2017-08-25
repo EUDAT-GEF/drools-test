@@ -1,6 +1,7 @@
 package eu.eudat.drools;
 
 
+import eu.eudat.drools.health.AppHealthCheck;
 import eu.eudat.drools.resources.DroolsBackendResource;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -20,7 +21,7 @@ public class DroolsBackendApplication extends Application<DroolsBackendConfigura
 
         final DroolsBackendResource bookService = new DroolsBackendResource();
         env.jersey().register(bookService);
-
+        env.healthChecks().register("drools", new AppHealthCheck());
 
 
     }

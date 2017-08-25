@@ -1,5 +1,5 @@
 server:
-  applicationContextPath: /drools
+  applicationContextPath: /api
 
   applicationConnectors:
     - type: http
