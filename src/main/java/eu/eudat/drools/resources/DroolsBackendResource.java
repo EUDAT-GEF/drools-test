@@ -1,6 +1,5 @@
 package eu.eudat.drools.resources;
 
-import com.oracle.javafx.jmx.json.JSONException;
 import org.json.JSONObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -23,8 +22,7 @@ public class DroolsBackendResource {
     @POST
     @Path("/events")
     @Consumes(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    //@Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void acceptEvent(String json) throws JSONException {
+    public void acceptEvent(String json) {
         JSONObject object = new JSONObject(json);
         System.out.println(object);
     }
