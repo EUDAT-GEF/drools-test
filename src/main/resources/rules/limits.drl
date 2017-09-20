@@ -1,0 +1,34 @@
+package eu.eudat.drools.core;
+
+import eu.eudat.drools.core.Limits;
+import eu.eudat.drools.core.Statistics;
+import eu.eudat.drools.core.Timeouts;
+
+dialect "java"
+rule "User has a single container"
+   when
+       $resLimits : Limits ()
+       Statistics (userRunningJobs==1, $resLimits.memory>0, $resLimits.memorySwap>0)
+   then
+       $resLimits.setMemory($resLimits.getMemory()*2);
+       $resLimits.setMemorySwap($resLimits.getMemorySwap()*2);
+end
+
+rule "User has too many running containers"
+   when
+       $resLimits : Limits ()
+       $sysTimeouts : Timeouts ()
+       Statistics (userRunningJobs>3, $resLimits.memory>0, $resLimits.memorySwap>0, $sysTimeouts.jobExecution>0)
+   then
+       $resLimits.setMemory($resLimits.getMemory()/2);
+       $resLimits.setMemorySwap($resLimits.getMemorySwap()/2);
+       $sysTimeouts.setJobExecution($sysTimeouts.getJobExecution()/2);
+end
+
+rule "GEF has too many running containers"
+   when
+       $sysTimeouts : Timeouts ()
+       Statistics (totalRunningJobs>1, $sysTimeouts.jobExecution>0)
+   then
+       $sysTimeouts.setJobExecution($sysTimeouts.getJobExecution()*2);
+end

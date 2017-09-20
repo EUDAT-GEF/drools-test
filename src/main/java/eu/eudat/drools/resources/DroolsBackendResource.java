@@ -4,6 +4,9 @@ import org.json.JSONObject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+
+import eu.eudat.drools.core.RuleChecker;
+
 @Path("")
 public class DroolsBackendResource {
 
@@ -22,9 +25,27 @@ public class DroolsBackendResource {
     @POST
     @Path("/events")
     @Consumes(MediaType.APPLICATION_JSON + ";charset=utf-8")
-    public void acceptEvent(String json) {
-        JSONObject object = new JSONObject(json);
-        System.out.println(object);
+    @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
+    public String acceptEvent(String json) {
+        JSONObject eventData = new JSONObject(json);
+        JSONObject systemEnvironment = new JSONObject();
+        JSONObject systemStatistics = new JSONObject();
+        if (eventData.has("environment")) {
+            systemEnvironment = eventData.optJSONObject("environment");
+        }
+        if (eventData.has("statistics")) {
+            systemStatistics = eventData.optJSONObject("statistics");
+        }
+
+
+        System.out.println(eventData);
+        System.out.println(systemEnvironment);
+        System.out.println(systemStatistics);
+        System.out.println("");
+
+        RuleChecker rc = new RuleChecker();
+        rc.FireRules(systemEnvironment, systemStatistics);
+        return systemEnvironment.toString();
     }
 }
 
