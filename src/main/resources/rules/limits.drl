@@ -1,34 +1,74 @@
 package eu.eudat.drools.core;
-
-import eu.eudat.drools.core.Limits;
-import eu.eudat.drools.core.Statistics;
-import eu.eudat.drools.core.Timeouts;
+import org.json.JSONObject;
 
 dialect "java"
 rule "User has a single container"
    when
-       $resLimits : Limits ()
-       Statistics (userRunningJobs==1, $resLimits.memory>0, $resLimits.memorySwap>0)
+       JSONObject ($config: this)
+       JSONObject ($stat: this.getJSONObject("statistics"))
+       JSONObject ($stat.getLong("userRunningJobs")==1)
    then
-       $resLimits.setMemory($resLimits.getMemory()*2);
-       $resLimits.setMemorySwap($resLimits.getMemorySwap()*2);
+       JSONObject env = new JSONObject();
+       if ($config.has("environment")) {
+            env = $config.getJSONObject("environment");
+       }
+       JSONObject limits = new JSONObject();
+       if (env.has("limits")) {
+            limits = env.getJSONObject("limits");
+       }
+       limits.put("memory", limits.getLong("memory")*2);
+       limits.put("memorySwap", limits.getLong("memorySwap")*2);
+
+       env.put("limits", limits);
+       $config.put("environment", env);
 end
+
 
 rule "User has too many running containers"
    when
-       $resLimits : Limits ()
-       $sysTimeouts : Timeouts ()
-       Statistics (userRunningJobs>3, $resLimits.memory>0, $resLimits.memorySwap>0, $sysTimeouts.jobExecution>0)
+       JSONObject ($config: this)
+       JSONObject ($stat: this.getJSONObject("statistics"))
+       JSONObject ($limits: this.getJSONObject("environment").getJSONObject("limits"))
+       JSONObject ($stat.getLong("userRunningJobs")>1)
    then
-       $resLimits.setMemory($resLimits.getMemory()/2);
-       $resLimits.setMemorySwap($resLimits.getMemorySwap()/2);
-       $sysTimeouts.setJobExecution($sysTimeouts.getJobExecution()/2);
+       JSONObject env = new JSONObject();
+       if ($config.has("environment")) {
+           env = $config.getJSONObject("environment");
+       }
+       JSONObject limits = new JSONObject();
+       if (env.has("limits")) {
+           limits = env.getJSONObject("limits");
+       }
+       limits.put("memory", limits.getLong("memory")/2);
+       limits.put("memorySwap", limits.getLong("memorySwap")/2);
+
+       JSONObject timeouts = new JSONObject();
+       if (env.has("timeouts")) {
+           timeouts = env.getJSONObject("timeouts");
+       }
+       timeouts.put("jobExecution", timeouts.getLong("jobExecution")/2);
+
+       env.put("limits", limits);
+       env.put("timeouts", timeouts);
+       $config.put("environment", env);
 end
 
 rule "GEF has too many running containers"
    when
-       $sysTimeouts : Timeouts ()
-       Statistics (totalRunningJobs>1, $sysTimeouts.jobExecution>0)
+       JSONObject ($config: this)
+       JSONObject ($stat: this.getJSONObject("statistics"))
+       JSONObject ($stat.getLong("totalRunningJobs")>1)
    then
-       $sysTimeouts.setJobExecution($sysTimeouts.getJobExecution()*2);
+       JSONObject env = new JSONObject();
+       if ($config.has("environment")) {
+          env = $config.getJSONObject("environment");
+       }
+
+       JSONObject timeouts = new JSONObject();
+       if (env.has("timeouts")) {
+          timeouts = env.getJSONObject("timeouts");
+       }
+       timeouts.put("preparation", timeouts.getLong("preparation")*2);
+       env.put("timeouts", timeouts);
+       $config.put("environment", env);
 end

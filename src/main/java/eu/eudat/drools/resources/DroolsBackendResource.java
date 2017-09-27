@@ -28,24 +28,9 @@ public class DroolsBackendResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public String acceptEvent(String json) {
         JSONObject eventData = new JSONObject(json);
-        JSONObject systemEnvironment = new JSONObject();
-        JSONObject systemStatistics = new JSONObject();
-        if (eventData.has("environment")) {
-            systemEnvironment = eventData.optJSONObject("environment");
-        }
-        if (eventData.has("statistics")) {
-            systemStatistics = eventData.optJSONObject("statistics");
-        }
-
-
-        System.out.println(eventData);
-        System.out.println(systemEnvironment);
-        System.out.println(systemStatistics);
-        System.out.println("");
-
         RuleChecker rc = new RuleChecker();
-        rc.FireRules(systemEnvironment, systemStatistics);
-        return systemEnvironment.toString();
+        rc.FireRules(eventData);
+        return eventData.toString();
     }
 }
 

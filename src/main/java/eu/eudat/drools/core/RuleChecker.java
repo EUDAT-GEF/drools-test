@@ -7,57 +7,30 @@ import org.drools.io.ResourceFactory;
 import org.drools.runtime.StatefulKnowledgeSession;
 import org.json.JSONObject;
 
+import java.util.*;
+
 
 public class RuleChecker {
 
-    public void FireRules(JSONObject sysEnv, JSONObject sysStat) {
+    public void FireRules(JSONObject eventData) {
+        Map<String, JSONObject> env = new HashMap();
+
+        Iterator<?> keys = eventData.keys();
+        while( keys.hasNext() ) {
+            String key = (String)keys.next();
+            if ( eventData.get(key) instanceof JSONObject ) {
+                env.put(key, eventData.optJSONObject(key));
+            }
+        }
+
         try {
             KnowledgeBase kbase = readKnowledgeBase();
             StatefulKnowledgeSession ksession = kbase.newStatefulKnowledgeSession();
-
-
-            JSONObject envTimeouts = sysEnv.optJSONObject("timeouts");
-            JSONObject envLimits = sysEnv.optJSONObject("limits");
-
-
-            Statistics stat = new Statistics();
-            if (sysStat.has("userRunningJobs")) {
-                stat.setUserRunningJobs(sysStat.getInt("userRunningJobs"));
-            }
-            if (sysStat.has("totalRunningJobs")) {
-                stat.setTotalRunningJobs(sysStat.getInt("totalRunningJobs"));
-            }
-            ksession.insert(stat);
-
-
-
-            Limits resLimits = new Limits();
-            if (envLimits.has("memory")) {
-                resLimits.setMemory(envLimits.getLong("memory"));
-            }
-            if (envLimits.has("memorySwap")) {
-                resLimits.setMemorySwap(envLimits.getLong("memorySwap"));
-            }
-            ksession.insert(resLimits);
-
-            Timeouts sysTimeouts = new Timeouts();
-            if (envTimeouts.has("jobExecution")) {
-                sysTimeouts.setJobExecution(envTimeouts.getLong("jobExecution"));
-            }
-            ksession.insert(sysTimeouts);
-
+            ksession.insert(eventData);
             ksession.fireAllRules();
 
-            System.out.println("CHANGING VALUE");
-            System.out.println(sysStat.getInt("userRunningJobs"));
-            System.out.println(envLimits.getLong("memory"));
-            System.out.println(envLimits.getLong("memorySwap"));
-            System.out.println(resLimits.getMemory());
-            System.out.println(sysTimeouts.getJobExecution());
-
-
-
-
+//            System.out.println("Changed values");
+//            System.out.println(eventData);
 
         } catch (Throwable t) {
             t.printStackTrace();
@@ -80,6 +53,5 @@ public class RuleChecker {
         kbase.addKnowledgePackages(kbuilder.getKnowledgePackages());
         return kbase;
     }
-
 
 }
