@@ -28,9 +28,14 @@ public class DroolsBackendResource {
     @Produces(MediaType.APPLICATION_JSON + ";charset=utf-8")
     public String acceptEvent(String json) {
         JSONObject eventData = new JSONObject(json);
+        JSONObject updatedEnv = new JSONObject();
+
         RuleChecker rc = new RuleChecker();
         rc.FireRules(eventData);
-        return eventData.toString();
+        if (eventData.has("environment")) {
+            updatedEnv = eventData.getJSONObject("environment");
+        }
+        return updatedEnv.toString();
     }
 }
 
